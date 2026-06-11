@@ -1,0 +1,22 @@
+{
+  "episodes": 2000,
+  "scenarios": [
+    "nuisance_only",
+    "decision_ambiguous"
+  ],
+  "nuisance_bits": [
+    0,
+    2,
+    4,
+    8,
+    16,
+    32
+  ],
+  "policies": [
+    "tao",
+    "entropy_threshold",
+    "qmdp",
+    "mode_only_oracle"
+  ],
+  "plot_failures": []
+}

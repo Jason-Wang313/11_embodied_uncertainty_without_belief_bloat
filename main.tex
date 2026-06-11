@@ -1,0 +1,194 @@
+\documentclass{article}
+\usepackage{iclr2026_conference,times}
+\input{math_commands.tex}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{url}
+
+\title{Embodied Uncertainty Without Belief Bloat}
+
+\author{Anonymous Authors}
+
+\newcommand{\states}{\mathcal{S}}
+\newcommand{\actions}{\mathcal{A}}
+\newcommand{\obs}{\mathcal{O}}
+\newcommand{\loss}{\ell}
+\newcommand{\supp}{\mathrm{supp}}
+\newcommand{\edges}{\mathcal{E}}
+\newcommand{\tao}{\mathrm{TAO}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Robots often inherit the belief-state interface of partially observable decision theory: perception returns a posterior over latent world states, and control is asked to plan with it. This is principled, but it can be a poor interface for embodied control when most uncertainty is unable to change the next action. We study a deliberately narrower object, a Task-Ambiguity Operator (TAO), that maps an observation-consistent support set and task loss to the action-order comparisons that remain undecidable. If the edge set is empty, TAO certifies that a robot can act without reducing generic uncertainty; if it is nonempty, sensing is aimed at the latent distinctions that can flip an action ordering. For finite action and state sets we prove a dominance certificate: if one action's worst supported task loss is below every competitor's best supported loss, that action is optimal for every belief supported on the same set. We also prove a product-state construction in which belief entropy and support size grow exponentially with nuisance variables while TAO ambiguity remains empty. A runnable partially observed route-choice simulator reproduces this failure mode: an entropy-threshold belief baseline spends sensing actions on nuisance bits, while TAO commits in nuisance-only states and senses only when the hidden task mode is decision-relevant. The contribution is not a new POMDP solver or a hardware result; it is a control-facing uncertainty object that makes ``what can change the action?'' central.
+\end{abstract}
+
+\section{Introduction}
+
+Partial observability is unavoidable in robotics. Objects occlude one another, tactile contact reveals only local geometry, navigation maps are incomplete, and learned world models hide many physical factors behind uncertain latents. The standard response is to represent what the robot does not know as a belief: a posterior, particle set, Gaussian, scenario tree, or learned recurrent state. This interface is mathematically clean and often necessary. Yet it quietly makes a strong design choice: uncertainty is represented before asking whether that uncertainty can alter the current control decision.
+
+This paper asks whether that order can be reversed. Instead of using a generic uncertainty object and then planning with it, we maintain an action-indexed ambiguity object. The central question is not ``what does the robot believe about the world?'' but ``which action comparisons are still undecidable for the present task?'' If no supported state can make a competing action better, then the robot should be allowed to act even when the world belief is large or high entropy. Conversely, if two actions exchange order across supported states, then sensing should target exactly the latent distinction responsible for that contested edge.
+
+We call this object a Task-Ambiguity Operator (TAO). Given a set of states consistent with the current embodied observation and a task loss for each action, TAO returns action-pair edges whose loss intervals overlap. A controller can use the resulting graph as a compact decision interface: empty graph means robust dominance and act; nonempty graph means sense, hedge, or defer along the contested boundary. This changes the mechanism from belief maintenance to action-order maintenance.
+
+The paper makes three contributions. First, it gives a finite-state formalization of TAO and proves a simple dominance certificate that is independent of the probabilities inside the current support. Second, it proves that generic uncertainty can be made arbitrarily large by adding nuisance variables without changing action ambiguity. Third, it provides a runnable embodied counterexample in which an entropy-threshold belief policy wastes sensing actions on nuisance uncertainty, while TAO changes control decisions by ignoring uncertainty that cannot flip a route choice.
+
+We are intentionally cautious about scope. TAO is not a universal replacement for POMDP planning, does not remove the need for calibrated support sets or bounded loss models, and is not evaluated on hardware. The claim is narrower: in tasks where immediate or receding-horizon action choice depends on sparse latent distinctions, the decision interface should expose action ambiguity directly rather than asking the controller to carry generic belief detail.
+
+\section{Related Work and Novelty Boundary}
+
+\paragraph{Belief-state planning.}
+POMDPs provide the canonical treatment of partial observability through belief states \citep{kaelbling1998planning}. Robotic variants include point-based approximations such as SARSOP \citep{kurniawati2008sarsop}, online Monte Carlo planning such as POMCP \citep{silver2010pomcp}, DESPOT-style scenario search \citep{somani2013despot}, and many task-specific belief-space planners for navigation and manipulation \citep{platt2010belief, aghamohammadi2014fips, xiao2019target}. These methods make belief-conditioned value computation less novel. TAO is different in object and failure mode: it asks whether action ordering is already certified before expanding or refining a belief.
+
+\paragraph{Belief-space motion planning and mixed observability.}
+Belief-space motion planning propagates distributions over robot state, map state, or object state through motion plans \citep{van2012motion, bry2011rapidly, aghamohammadi2014fips}. Mixed-observability formulations reduce state dimension when some variables are directly known \citep{ong2010mixed}. These works are strong hostile priors against any claim that compact uncertainty alone is new. TAO instead allows the same latent factor to be relevant or irrelevant depending on the current action pair and loss boundary.
+
+\paragraph{Active perception and information gathering.}
+Active perception and informative planning choose observations by information gain, entropy reduction, expected value of information, or next-best-view criteria \citep{bajcsy1988active, hollinger2014sampling, chen2011active}. These approaches are close to TAO whenever the value of information is computed exactly from downstream utility. The boundary is that TAO's primitive is an action-order edge set, not information. An observation is useful only insofar as it removes a contested control edge; high entropy alone is not a reason to sense.
+
+\paragraph{Robust control, risk, and abstraction.}
+Robust and chance-constrained robotics optimize under uncertainty sets, tubes, or probability constraints \citep{blackmore2011chance, majumdar2017funnel}. State abstraction and representation learning seek compact task-relevant states \citep{li2006towards, abel2016near}. TAO borrows the spirit of task relevance but makes it local to the present action comparison. It can commit under large uncertainty when one action dominates all supported states, so it is not simply a conservative risk wrapper.
+
+Our 1143-paper OpenAlex sweep, summarized in the repository, supports this boundary: the closest 100 hostile papers overwhelmingly maintain, sample, compress, or constrain a world-belief object. The opening is a controller-facing ambiguity object that is allowed to be empty despite high world uncertainty.
+
+\section{Task-Ambiguity Operators}
+
+Consider a finite partially observed robot decision problem at a receding-horizon step. Let $\states$ be latent physical states, $\actions$ a finite set of executable controls or skills, and $\loss(a,s)$ the task loss of taking action $a$ when the latent state is $s$. An observation $o$ induces a support set $S(o)\subseteq \states$ of states still consistent with perception and the trusted model. We intentionally separate support from probabilities; TAO can be used with a belief, but its certificate depends only on support and loss bounds.
+
+For each action $a$, define the supported loss interval
+\begin{equation}
+  I_a(o) = [L_a(o), U_a(o)] =
+  \left[\min_{s\in S(o)} \loss(a,s),\; \max_{s\in S(o)} \loss(a,s)\right].
+\end{equation}
+The Task-Ambiguity Operator returns contested action-order edges:
+\begin{equation}
+  \tao(o) =
+  \left\{ \{a,b\}: I_a(o)\cap I_b(o)\neq \emptyset \right\}.
+\end{equation}
+Intervals overlap when the support does not certify a strict order between the two actions. A sufficient dominance certificate exists when some action's upper bound is below every competitor's lower bound:
+\begin{equation}
+  U_a(o) < \min_{b\neq a} L_b(o).
+  \label{eq:dominance}
+\end{equation}
+
+\paragraph{Controller interface.}
+The simplest TAO controller has three modes. If Equation~\ref{eq:dominance} holds, execute the dominant action. If no dominance holds but a sensing action can split $S(o)$ along a latent variable that appears in at least one contested edge, sense that variable. Otherwise choose a hedge action or fall back to a belief planner. This paper evaluates the first two modes in a small embodied simulator because they isolate the mechanism.
+
+\paragraph{Observation targeting.}
+Let a candidate sensor $z$ partition $S(o)$ into cells $S_z^1,\ldots,S_z^m$. TAO scores the sensor by the reduction in contested edge width,
+\begin{equation}
+  \Delta_{\tao}(z;o)=|\tao(o)| - \max_j |\tao(S_z^j)|,
+\end{equation}
+or by a regret-width variant in Appendix~\ref{app:regret}. This differs from entropy gain: a sensor that resolves many nuisance states but leaves every contested action edge intact has zero TAO value.
+
+\section{Formal Claims}
+
+\paragraph{Proposition 1: dominance is belief-independent.}
+If Equation~\ref{eq:dominance} holds for action $a$ at observation $o$, then for every belief $b$ with $\supp(b)\subseteq S(o)$, action $a$ has lower expected loss than every $c\neq a$.
+
+\emph{Proof.}
+For any $s\in S(o)$ and any $c\neq a$, $\loss(a,s)\leq U_a(o)<L_c(o)\leq \loss(c,s)$. Taking expectation under any belief supported on $S(o)$ preserves the strict inequality:
+\begin{equation}
+  \mathbb{E}_{s\sim b}[\loss(a,s)]
+  < \mathbb{E}_{s\sim b}[\loss(c,s)].
+\end{equation}
+Thus no posterior probabilities inside the support can change the preferred action. \hfill $\square$
+
+\paragraph{Proposition 2: belief bloat can be arbitrary while TAO ambiguity is unchanged.}
+Let a base task have state set $\states_0$, action set $\actions$, support $S_0$, and loss $\loss_0(a,s_0)$. Construct a product task with $k$ nuisance bits $n\in\{0,1\}^k$, state $(s_0,n)$, support $S_k=S_0\times\{0,1\}^k$, and loss $\loss_k(a,(s_0,n))=\loss_0(a,s_0)$. Then $|\supp(b_k)|$ can grow by $2^k$ and entropy can increase by $k$ bits under a uniform nuisance belief, while every TAO interval and contested edge is identical to the base task.
+
+\emph{Proof.}
+For any action $a$,
+\begin{equation}
+  \min_{(s_0,n)\in S_k}\loss_k(a,(s_0,n)) =
+  \min_{s_0\in S_0}\loss_0(a,s_0),
+\end{equation}
+and the same equality holds for maxima. Therefore $I_a$ and all interval-overlap edges are unchanged. A uniform belief over nuisance bits multiplies support size by $2^k$ and adds $k$ bits of entropy. \hfill $\square$
+
+The propositions do not say probabilities are useless. They say there exist embodied decisions for which probabilities over nuisance factors cannot affect action choice, and a controller should be able to certify that fact before spending memory or sensing actions on them.
+
+\section{Runnable Evidence}
+
+\paragraph{Simulator.}
+We implement a small partially observed robot route-choice task. A robot must choose one of two routes. A hidden task mode determines which route succeeds; choosing the wrong route incurs high cost. The observation may also leave $k$ nuisance bits unknown. These bits increase belief support size but never affect route cost. The robot can inspect the task mode at cost $1.0$, scan one nuisance bit at cost $0.2$, or commit to a route. We evaluate two scenarios: \emph{decision ambiguous}, where the task mode is initially hidden, and \emph{nuisance only}, where the task mode is known but nuisance bits remain hidden.
+
+\paragraph{Policies.}
+TAO computes contested route edges over the current support. It inspects the mode only if route ordering is ambiguous, then commits. The entropy-threshold baseline carries a factored belief and senses while total unknown bits exceed a threshold, scanning nuisance bits first. QMDP commits according to the currently known mode and therefore fails when the mode is hidden. A mode-only oracle is an upper reference that senses only the task mode.
+
+\paragraph{Results.}
+Each setting uses 2000 episodes, for 96,000 episodes total. Figure~\ref{fig:costs} shows that in nuisance-only states TAO's mean episode cost remains $1.0$ as nuisance bits grow to $32$, while the entropy baseline grows from $1.0$ to $7.4$ because it scans irrelevant bits. In decision-ambiguous states, TAO inspects the task mode once and commits with mean cost $2.0$ at every nuisance level; the entropy baseline pays an additional $0.2k$ nuisance scanning cost before resolving the mode. QMDP is cheap when the mode is known but wrong about half the time when it is not.
+
+\begin{figure}[t]
+  \centering
+  \begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{results/cost_nuisance_only.pdf}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{results/cost_decision_ambiguous.pdf}
+  \end{minipage}
+  \caption{TAO changes control decisions by distinguishing nuisance uncertainty from decision ambiguity. Left: the task mode is known, so TAO commits despite high nuisance entropy. Right: the task mode is hidden, so TAO senses the mode once but does not scan nuisance bits.}
+  \label{fig:costs}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.62\linewidth]{results/representation_bloat.pdf}
+  \caption{Product-state nuisance variables grow the belief support exponentially while TAO ambiguity remains empty when the task mode is already known.}
+  \label{fig:bloat}
+\end{figure}
+
+\begin{table}[t]
+  \centering
+  \caption{Selected aggregate results at 32 nuisance bits. Cost is mean episode cost over 2000 episodes.}
+  \label{tab:summary}
+  \begin{tabular}{llrrrr}
+    \toprule
+    Scenario & Policy & Cost & Success & Nuisance senses & Max belief states \\
+    \midrule
+    Nuisance only & TAO & 1.0 & 1.00 & 0.0 & $2^{32}$ \\
+    Nuisance only & Entropy belief & 7.4 & 1.00 & 32.0 & $2^{32}$ \\
+    Decision ambiguous & TAO & 2.0 & 1.00 & 0.0 & $2^{33}$ \\
+    Decision ambiguous & Entropy belief & 8.4 & 1.00 & 32.0 & $2^{33}$ \\
+    Decision ambiguous & QMDP & 6.48 & 0.50 & 0.0 & $2^{33}$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The experiment is not intended as a benchmark. It is a falsifiable mechanism test: high generic uncertainty is not sufficient evidence that the robot should sense, and low-cost commitment can be certified from action-order intervals.
+
+\section{Limitations}
+
+TAO needs a calibrated support set and valid loss bounds. If perception excludes the true state, the dominance certificate can be confidently wrong. Interval dominance is also sufficient rather than necessary; overlapping intervals can be conservative when probability mass strongly favors one action. The current implementation is single-step/receding-horizon and finite. Long-horizon composition, continuous action sets, learned loss-bound calibration, and contact-rich hardware validation remain open. Finally, exact POMDP value of information can already identify useful observations after solving the belief problem; TAO is proposed for regimes where the robot wants a cheaper front-end certificate or a different controller interface, not as a universal replacement.
+
+\section{Conclusion}
+
+The usual belief interface asks embodied agents to carry uncertainty first and decide later which parts matter. TAO reverses that order for finite task decisions: represent the action comparisons that remain undecidable, certify dominance when possible, and sense only along contested control edges. The formal results and runnable simulator show a concrete way to avoid belief bloat without pretending uncertainty has disappeared. In partially observed robotics, the useful question is often smaller than the world belief: what uncertainty can still change the action?
+
+\bibliography{references}
+\bibliographystyle{iclr2026_conference}
+
+\appendix
+
+\section{Regret-Width Variant}
+\label{app:regret}
+
+For tasks where empty-edge dominance is too conservative, TAO can store an edge weight
+\begin{equation}
+  w(a,b;o)=\max(0, \min(U_a,U_b)-\max(L_a,L_b)).
+\end{equation}
+Sensors can be selected by reducing the maximum or sum of edge weights rather than edge count. The main paper does not claim a formal optimality result for this variant; it is an engineering extension for less separated losses.
+
+\section{Reproducibility}
+
+The simulator is implemented in \texttt{scripts/run\_experiments.py}. Running it writes \texttt{results/episode\_results.csv}, \texttt{results/summary.csv}, the three figure PDFs, and \texttt{docs/experiment\_report.md}. The literature artifacts are generated from cached OpenAlex records and scripts in \texttt{scripts/collect\_literature.py} and \texttt{scripts/analyze\_literature.py}.
+
+\end{document}

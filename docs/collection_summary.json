@@ -1,0 +1,32 @@
+{
+  "unique_records": 1143,
+  "raw_records": 1600,
+  "target_unique": 1125,
+  "queries_used": [
+    "robotics partial observability POMDP belief space planning",
+    "robot planning under uncertainty belief state POMDP",
+    "belief space planning robot motion planning uncertainty",
+    "active perception robotics information gathering planning uncertainty",
+    "robot manipulation partial observability tactile uncertainty planning",
+    "robot navigation uncertainty POMDP active localization",
+    "task relevant uncertainty robotics planning",
+    "robot decision making under uncertainty ambiguity",
+    "chance constrained motion planning robotics uncertainty",
+    "robust robot planning uncertainty partial observation",
+    "POMCP DESPOT SARSOP robot planning partial observable",
+    "object manipulation belief planning occlusion uncertainty robotics",
+    "embodied agents uncertainty world models control robotics",
+    "semantic uncertainty robot planning partially observed environment",
+    "information-theoretic active sensing robot control",
+    "Bayesian robot planning under uncertainty world model",
+    "model predictive control partial observation robotics uncertainty",
+    "risk sensitive robot planning uncertainty POMDP",
+    "state abstraction POMDP robotics task relevant representation",
+    "uncertainty-aware robot foundation models planning"
+  ],
+  "failures": [],
+  "outputs": {
+    "matrix": "docs\\related_work_matrix.csv",
+    "raw": "data\\openalex_literature_raw.jsonl"
+  }
+}

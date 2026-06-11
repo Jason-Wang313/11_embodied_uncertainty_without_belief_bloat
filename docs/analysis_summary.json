@@ -1,0 +1,8 @@
+{
+  "matrix_rows": 1143,
+  "serious_skim": 300,
+  "deep_read": 225,
+  "hostile_prior": 100,
+  "chosen_mechanism": "Task-Ambiguity Operators",
+  "hidden_assumptions": 30
+}
