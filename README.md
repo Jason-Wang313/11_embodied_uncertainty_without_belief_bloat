@@ -14,7 +14,7 @@ Partially observed robots should not maintain generic belief detail unless it ca
 - `scripts/run_experiments.py`: runnable simulator and plot generator.
 - `docs/related_work_matrix.csv`: 1143-paper landscape matrix.
 - `docs/literature_map.md`, `docs/hostile_prior_work.md`, `docs/novelty_boundary_map.md`, `docs/novelty_decision.md`, `docs/claims.md`, `docs/reviewer_attacks.md`: novelty and risk analysis.
-- `results/summary.csv`, `results/episode_results.csv`, `results/*.pdf`: experiment outputs and figures.
+- `results/summary.csv`, `results/episode_results.csv`, `results/support_misspecification_summary.csv`, `results/*.pdf`: experiment outputs and figures.
 
 ## Reproduce Evidence
 
@@ -26,6 +26,7 @@ This regenerates:
 
 - `results/episode_results.csv`
 - `results/summary.csv`
+- `results/support_misspecification_summary.csv`
 - `results/cost_nuisance_only.pdf`
 - `results/cost_decision_ambiguous.pdf`
 - `results/representation_bloat.pdf`
@@ -45,3 +46,7 @@ The final orchestrator-required PDF is saved outside the repo at:
 ```text
 C:/Users/wangz/Downloads/11.pdf
 ```
+
+## Submission-Hardening v2
+
+The v2 pass adds an exact myopic value-of-information oracle and a support-misspecification stress. TAO matches the VOI oracle in the toy route task, so the claim is a controller-facing ambiguity interface rather than superiority over solved POMDP value-of-information. When the true mode is excluded from support after sensing, success falls to 0.884 at a 10% support miss rate and 0.795 at 20%, making support calibration the main boundary.

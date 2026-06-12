@@ -1,7 +1,7 @@
 # Reviewer Attacks
 
 ## Attack 1: This is just POMDP value of information.
-Response: Value of information still starts from belief-conditioned value. TAO can be evaluated over a support set and returns an action-edge certificate; the null result is 'act now' even at high entropy.
+Response: V2 adds an exact myopic VOI oracle, and TAO matches it in the toy route task. The claim is not that TAO beats exact VOI after solving the belief problem; it is that TAO supplies a controller-facing action-edge certificate whose null result is 'act now' even at high entropy.
 
 ## Attack 2: This is just state abstraction.
 Response: State abstraction chooses a compact state. TAO is indexed by the current action comparison; the same latent variable can be discarded for one action pair and preserved for another.
@@ -22,7 +22,7 @@ Response: Only after solving/searching in belief space. TAO supplies a cheaper f
 Response: The current paper assumes a finite task loss table or learned bounded loss intervals; model learning is outside scope.
 
 ## Attack 8: Worst-case intervals can overcommit or undersense if support sets are wrong.
-Response: The paper explicitly requires calibrated support sets and lists support misspecification as the main weakness.
+Response: The paper explicitly requires calibrated support sets. V2 adds a support-misspecification stress: success falls to 0.884 at 10% support misses and 0.795 at 20% when the true mode is excluded after sensing.
 
 ## Attack 9: The method may fail in long-horizon tasks where later ambiguity matters.
 Response: The experiment includes short receding-horizon control; long-horizon TAO composition is future work.

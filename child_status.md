@@ -1,40 +1,36 @@
-# Child Status 11
+# Child Status
 
-Stage: complete
-Attempt: 2
-Updated: 2026-06-11
+Stage: experiments complete
+
+Latest update:
+- Ran 96000 simulated episodes across 48 aggregate settings.
+- Wrote `results/episode_results.csv`, `results/summary.csv`, and `docs/experiment_report.md`.
+- Plot failures: 0.
 
 Commands run:
-- `python scripts/run_experiments.py`
-- `python scripts/analyze_literature.py`
-- `Copy-Item ... iclr2026_conference.sty/.bst, natbib.sty, fancyhdr.sty, math_commands.tex`
-- `pdflatex -interaction=nonstopmode -halt-on-error main.tex`
-- `bibtex main`
-- `pdflatex -interaction=nonstopmode -halt-on-error main.tex`
-- `pdflatex -interaction=nonstopmode -halt-on-error main.tex`
-- `Copy-Item -LiteralPath main.pdf -Destination C:\Users\wangz\Downloads\11.pdf -Force`
-- `gh --version`
-- `gh auth status`
-- `git add -A`
-- `git commit -m "Add embodied uncertainty paper artifacts"`
-- `gh repo view Jason-Wang313/11_embodied_uncertainty_without_belief_bloat --json url,visibility`
-- `gh repo create 11_embodied_uncertainty_without_belief_bloat --public --source=. --remote=origin --description ...`
-- `git push -u origin master`
-- `git add child_status.md docs\final_audit.md`
-- `git commit -m "Add final audit"`
-- `git push`
+- python scripts/run_experiments.py
 
-Current findings:
-- Literature matrix has 1143 rows, with 300 serious skim, 225 deep read proxy, and 100 hostile prior entries.
-- Experiments regenerated 96000 episodes and all plots without failures.
-- Paper compiled to 6 pages with direct ICLR 2026 template files.
-- Final PDF saved to `C:/Users/wangz/Downloads/11.pdf` with 264744 bytes.
-- Public GitHub repo exists at `https://github.com/Jason-Wang313/11_embodied_uncertainty_without_belief_bloat`.
-- Visible Desktop copy is not present locally; audit marks `pending orchestrator copy`.
+Failures:
+- None.
 
-Failures / recovery:
-- Initial post-BibTeX LaTeX pass showed transient undefined citation warnings; recovered with the final `pdflatex` pass.
-- MiKTeX emitted a non-blocking update notice.
+Recovery steps:
+- None needed.
 
-Next:
-- None. Required local artifacts, Downloads PDF, final audit, and GitHub push are complete.
+## Submission-Hardening v2
+
+End time: 2026-06-12 22:40:41 +01:00
+Stage: terminal workshop-only / revise
+
+Added facts:
+- Added exact myopic VOI oracle baseline. TAO matches the VOI oracle in this toy route task, narrowing the novelty claim to controller interface/certificate rather than optimal-planning superiority.
+- Added support-misspecification stress. TAO success is 0.884 at 10% support misses and 0.795 at 20% when the true mode is excluded after sensing.
+- Generated `results/support_misspecification_episode_results.csv`, `results/support_misspecification_summary.csv`, and `results/support_misspecification_table.tex`.
+- Updated manuscript abstract, policy description, results, limitations, table, and v2 marker.
+- Added submission attack/version/readiness/reproducibility/rigor docs.
+- Rebuilt the PDF with `pdflatex`, `bibtex`, `pdflatex`, `pdflatex`.
+- Copied canonical PDF to `C:/Users/wangz/Downloads/11.pdf` (268,493 bytes).
+- Removed local `main.pdf` after copying the canonical PDF.
+- No new Desktop PDF copy was created during v2 hardening.
+
+Latest terminal decision:
+- Workshop-only / revise. The mechanism is formal and runnable, but evidence remains a small route-choice simulator without hardware, standard benchmarks, learned support calibration, or long-horizon continuous-control validation.

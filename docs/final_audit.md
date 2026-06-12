@@ -14,20 +14,35 @@
 
 7. Proof/formal-claim status: Two finite-state claims are proved in `main.tex`: a belief-independent dominance certificate and a product-state nuisance construction showing that belief entropy/support can grow without changing TAO ambiguity. No theorem is claimed for continuous systems, learned support calibration, long-horizon composition, or the regret-width extension.
 
-8. Strongest evidence: `scripts/run_experiments.py` regenerates 96000 simulated episodes. The key result is that TAO commits with cost 1.0 in nuisance-only states and cost 2.0 in decision-ambiguous states, while an entropy-threshold belief baseline pays increasing nuisance scanning cost up to 7.4 and 8.4 at 32 nuisance bits.
+8. Strongest evidence: `scripts/run_experiments.py` regenerates 96000 main simulated episodes plus a 12000-episode v2 support stress. The key result is that TAO commits with cost 1.0 in nuisance-only states and cost 2.0 in decision-ambiguous states, while an entropy-threshold belief baseline pays increasing nuisance scanning cost up to 7.4 and 8.4 at 32 nuisance bits. The v2 exact myopic VOI oracle matches TAO in this toy, narrowing the novelty claim. The v2 support-misspecification stress shows success falls to 0.884 at 10% support misses and 0.795 at 20%.
 
-9. Biggest weaknesses: The experiment is intentionally small and synthetic; no hardware or standard robotics benchmark is included. TAO depends on calibrated support sets and bounded loss intervals. Interval dominance is sufficient and can be conservative. Long-horizon and continuous-control versions are left open.
+9. Biggest weaknesses: The experiment is intentionally small and synthetic; no hardware or standard robotics benchmark is included. TAO depends on calibrated support sets and bounded loss intervals. The v2 support stress confirms the certificate becomes confidently wrong if perception excludes the true mode. Interval dominance is sufficient and can be conservative. Long-horizon and continuous-control versions are left open.
 
 10. Paper-readiness judgment: workshop. The core mechanism is clear, formally defensible, and runnable, but ICLR main-conference readiness would require stronger robotics experiments, clearer comparison to exact value-of-information POMDP planning, and support calibration evidence.
 
-11. Exact Downloads PDF path: `C:/Users/wangz/Downloads/11.pdf`.
+11. Exact Downloads PDF path: `C:/Users/wangz/Downloads/11.pdf` (268,493 bytes).
 
 12. GitHub URL: `https://github.com/Jason-Wang313/11_embodied_uncertainty_without_belief_bloat`.
 
 13. Visible Desktop PDF copy status: pending orchestrator copy.
+
+## Submission-Hardening v2
+
+Checked: 2026-06-12 22:40:41 +01:00
+Action: Added exact myopic VOI oracle baseline, support-misspecification stress, generated CSV/table artifacts, and manuscript claim-boundary text.
+Decision: Workshop-only / revise before main-conference submission.
+Reason: The mechanism is formal and reproducible, but evidence remains a small route-choice simulator without hardware, standard benchmark comparisons, learned support calibration, or long-horizon continuous-control validation.
+Downloads PDF: C:/Users/wangz/Downloads/11.pdf (268,493 bytes)
+Desktop policy: no new Desktop copy created during v2 hardening.
 
 Additional build notes:
 - Paper source: `main.tex`.
 - Build path used direct `pdflatex`, `bibtex`, `pdflatex`, `pdflatex`.
 - Final LaTeX log check found no undefined references, fatal errors, emergency stops, or LaTeX errors.
 - Latest official ICLR template checked at runtime: ICLR 2026 materials were the latest official materials found; no ICLR 2027 author template was found during the runtime search.
+
+## Orchestrator Desktop Copy
+
+Checked: 2026-06-11 11:47:53 +01:00
+Downloads PDF: C:/Users/wangz/Downloads/11.pdf
+Result: copy script exit 0 log C:\Users\wangz\robotics_60_paper_batch\logs\desktop_copy_11_20260611_114750.log

@@ -24,9 +24,10 @@
 \begin{document}
 
 \maketitle
+\noindent\textbf{Submission-hardening v2, 2026-06-12.} Added an exact myopic value-of-information oracle baseline and a support-misspecification stress test for calibrated-support failures.
 
 \begin{abstract}
-Robots often inherit the belief-state interface of partially observable decision theory: perception returns a posterior over latent world states, and control is asked to plan with it. This is principled, but it can be a poor interface for embodied control when most uncertainty is unable to change the next action. We study a deliberately narrower object, a Task-Ambiguity Operator (TAO), that maps an observation-consistent support set and task loss to the action-order comparisons that remain undecidable. If the edge set is empty, TAO certifies that a robot can act without reducing generic uncertainty; if it is nonempty, sensing is aimed at the latent distinctions that can flip an action ordering. For finite action and state sets we prove a dominance certificate: if one action's worst supported task loss is below every competitor's best supported loss, that action is optimal for every belief supported on the same set. We also prove a product-state construction in which belief entropy and support size grow exponentially with nuisance variables while TAO ambiguity remains empty. A runnable partially observed route-choice simulator reproduces this failure mode: an entropy-threshold belief baseline spends sensing actions on nuisance bits, while TAO commits in nuisance-only states and senses only when the hidden task mode is decision-relevant. The contribution is not a new POMDP solver or a hardware result; it is a control-facing uncertainty object that makes ``what can change the action?'' central.
+Robots often inherit the belief-state interface of partially observable decision theory: perception returns a posterior over latent world states, and control is asked to plan with it. This is principled, but it can be a poor interface for embodied control when most uncertainty is unable to change the next action. We study a deliberately narrower object, a Task-Ambiguity Operator (TAO), that maps an observation-consistent support set and task loss to the action-order comparisons that remain undecidable. If the edge set is empty, TAO certifies that a robot can act without reducing generic uncertainty; if it is nonempty, sensing is aimed at the latent distinctions that can flip an action ordering. For finite action and state sets we prove a dominance certificate: if one action's worst supported task loss is below every competitor's best supported loss, that action is optimal for every belief supported on the same set. We also prove a product-state construction in which belief entropy and support size grow exponentially with nuisance variables while TAO ambiguity remains empty. A runnable partially observed route-choice simulator reproduces this failure mode: an entropy-threshold belief baseline spends sensing actions on nuisance bits, while TAO commits in nuisance-only states and senses only when the hidden task mode is decision-relevant. A v2 exact value-of-information oracle matches TAO in this toy, clarifying that the claim is a controller interface rather than superiority over solved POMDP value-of-information. A v2 support-misspecification stress shows the key dependency: when the true task mode is excluded from support 10\% of the time, TAO success falls to 0.884. The contribution is not a new POMDP solver or a hardware result; it is a control-facing uncertainty object that makes ``what can change the action?'' central.
 \end{abstract}
 
 \section{Introduction}
@@ -119,10 +120,10 @@ The propositions do not say probabilities are useless. They say there exist embo
 We implement a small partially observed robot route-choice task. A robot must choose one of two routes. A hidden task mode determines which route succeeds; choosing the wrong route incurs high cost. The observation may also leave $k$ nuisance bits unknown. These bits increase belief support size but never affect route cost. The robot can inspect the task mode at cost $1.0$, scan one nuisance bit at cost $0.2$, or commit to a route. We evaluate two scenarios: \emph{decision ambiguous}, where the task mode is initially hidden, and \emph{nuisance only}, where the task mode is known but nuisance bits remain hidden.
 
 \paragraph{Policies.}
-TAO computes contested route edges over the current support. It inspects the mode only if route ordering is ambiguous, then commits. The entropy-threshold baseline carries a factored belief and senses while total unknown bits exceed a threshold, scanning nuisance bits first. QMDP commits according to the currently known mode and therefore fails when the mode is hidden. A mode-only oracle is an upper reference that senses only the task mode.
+TAO computes contested route edges over the current support. It inspects the mode only if route ordering is ambiguous, then commits. The entropy-threshold baseline carries a factored belief and senses while total unknown bits exceed a threshold, scanning nuisance bits first. QMDP commits according to the currently known mode and therefore fails when the mode is hidden. A v2 exact myopic value-of-information oracle senses the task mode when it can change route choice and otherwise commits; in this simple task it is an upper reference that TAO matches.
 
 \paragraph{Results.}
-Each setting uses 2000 episodes, for 96,000 episodes total. Figure~\ref{fig:costs} shows that in nuisance-only states TAO's mean episode cost remains $1.0$ as nuisance bits grow to $32$, while the entropy baseline grows from $1.0$ to $7.4$ because it scans irrelevant bits. In decision-ambiguous states, TAO inspects the task mode once and commits with mean cost $2.0$ at every nuisance level; the entropy baseline pays an additional $0.2k$ nuisance scanning cost before resolving the mode. QMDP is cheap when the mode is known but wrong about half the time when it is not.
+Each main setting uses 2000 episodes, for 96,000 episodes total, plus a 12,000-episode v2 support-misspecification stress. Figure~\ref{fig:costs} shows that in nuisance-only states TAO's mean episode cost remains $1.0$ as nuisance bits grow to $32$, while the entropy baseline grows from $1.0$ to $7.4$ because it scans irrelevant bits. In decision-ambiguous states, TAO and the exact myopic value-of-information oracle inspect the task mode once and commit with mean cost $2.0$ at every nuisance level; the entropy baseline pays an additional $0.2k$ nuisance scanning cost before resolving the mode. QMDP is cheap when the mode is known but wrong about half the time when it is not.
 
 \begin{figure}[t]
   \centering
@@ -155,19 +156,28 @@ Each setting uses 2000 episodes, for 96,000 episodes total. Figure~\ref{fig:cost
     Scenario & Policy & Cost & Success & Nuisance senses & Max belief states \\
     \midrule
     Nuisance only & TAO & 1.0 & 1.00 & 0.0 & $2^{32}$ \\
+    Nuisance only & VOI oracle & 1.0 & 1.00 & 0.0 & $2^{32}$ \\
     Nuisance only & Entropy belief & 7.4 & 1.00 & 32.0 & $2^{32}$ \\
     Decision ambiguous & TAO & 2.0 & 1.00 & 0.0 & $2^{33}$ \\
+    Decision ambiguous & VOI oracle & 2.0 & 1.00 & 0.0 & $2^{33}$ \\
     Decision ambiguous & Entropy belief & 8.4 & 1.00 & 32.0 & $2^{33}$ \\
-    Decision ambiguous & QMDP & 6.48 & 0.50 & 0.0 & $2^{33}$ \\
+    Decision ambiguous & QMDP & 6.44 & 0.51 & 0.0 & $2^{33}$ \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-The experiment is not intended as a benchmark. It is a falsifiable mechanism test: high generic uncertainty is not sufficient evidence that the robot should sense, and low-cost commitment can be certified from action-order intervals.
+\begin{table}[t]
+  \centering
+  \caption{V2 support-misspecification stress. After the robot pays to inspect the task mode, the observation-consistent support excludes the true mode with the listed probability.}
+  \label{tab:support-miss}
+  \input{results/support_misspecification_table.tex}
+\end{table}
+
+The experiment is not intended as a benchmark. It is a falsifiable mechanism test: high generic uncertainty is not sufficient evidence that the robot should sense, and low-cost commitment can be certified from action-order intervals. It also narrows the claim. Table~\ref{tab:support-miss} shows that if the support set excludes the true mode, the dominance certificate becomes confidently wrong: success falls to 0.884 at 10\% support misses and 0.795 at 20\%.
 
 \section{Limitations}
 
-TAO needs a calibrated support set and valid loss bounds. If perception excludes the true state, the dominance certificate can be confidently wrong. Interval dominance is also sufficient rather than necessary; overlapping intervals can be conservative when probability mass strongly favors one action. The current implementation is single-step/receding-horizon and finite. Long-horizon composition, continuous action sets, learned loss-bound calibration, and contact-rich hardware validation remain open. Finally, exact POMDP value of information can already identify useful observations after solving the belief problem; TAO is proposed for regimes where the robot wants a cheaper front-end certificate or a different controller interface, not as a universal replacement.
+TAO needs a calibrated support set and valid loss bounds. If perception excludes the true state, the dominance certificate can be confidently wrong; the v2 support-misspecification stress quantifies this failure in the toy route task. Interval dominance is also sufficient rather than necessary; overlapping intervals can be conservative when probability mass strongly favors one action. The current implementation is single-step/receding-horizon and finite. Long-horizon composition, continuous action sets, learned loss-bound calibration, and contact-rich hardware validation remain open. Finally, exact POMDP value of information can already identify useful observations after solving the belief problem; the v2 VOI oracle intentionally matches TAO in this toy. TAO is proposed for regimes where the robot wants a cheaper front-end certificate or a different controller interface, not as a universal replacement.
 
 \section{Conclusion}
 

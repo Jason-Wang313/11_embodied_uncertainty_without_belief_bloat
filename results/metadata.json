@@ -14,9 +14,17 @@
   ],
   "policies": [
     "tao",
+    "voi_oracle",
     "entropy_threshold",
-    "qmdp",
-    "mode_only_oracle"
+    "qmdp"
+  ],
+  "support_miss_rates": [
+    0.0,
+    0.01,
+    0.02,
+    0.05,
+    0.1,
+    0.2
   ],
   "plot_failures": []
 }

@@ -16,7 +16,8 @@ DOCS.mkdir(exist_ok=True)
 EPISODES = 2000
 NUISANCE_BITS = [0, 2, 4, 8, 16, 32]
 SCENARIOS = ["nuisance_only", "decision_ambiguous"]
-POLICIES = ["tao", "entropy_threshold", "qmdp", "mode_only_oracle"]
+POLICIES = ["tao", "voi_oracle", "entropy_threshold", "qmdp"]
+SUPPORT_MISS_RATES = [0.0, 0.01, 0.02, 0.05, 0.10, 0.20]
 ROUTE_COST_OK = 1.0
 ROUTE_COST_BAD = 12.0
 MODE_SENSOR_COST = 1.0
@@ -120,7 +121,7 @@ def simulate_episode(policy, scenario, nuisance_bits, rng):
                 action = expected_best_route(mode_known, true_mode)
         elif policy == "qmdp":
             action = expected_best_route(mode_known, true_mode)
-        elif policy == "mode_only_oracle":
+        elif policy == "voi_oracle":
             if not mode_known:
                 action = "inspect_mode"
             else:
@@ -208,6 +209,38 @@ def summarize(rows):
     return summary
 
 
+def simulate_support_miss_episode(miss_rate, rng):
+    true_mode = rng.randint(0, 1)
+    total_cost = MODE_SENSOR_COST
+    observed_mode = 1 - true_mode if rng.random() < miss_rate else true_mode
+    action = f"route_{observed_mode}"
+    total_cost += cost_of_route(action, true_mode)
+    success = int(observed_mode == true_mode)
+    return {
+        "support_miss_rate": miss_rate,
+        "cost": total_cost,
+        "success": success,
+        "wrong_route": int(not success),
+    }
+
+
+def support_misspecification_stress(rng):
+    rows = []
+    summary = []
+    for miss_rate in SUPPORT_MISS_RATES:
+        items = [simulate_support_miss_episode(miss_rate, rng) for _ in range(EPISODES)]
+        rows.extend(items)
+        n = len(items)
+        summary.append({
+            "support_miss_rate": miss_rate,
+            "episodes": n,
+            "mean_cost": sum(float(x["cost"]) for x in items) / n,
+            "success_rate": sum(float(x["success"]) for x in items) / n,
+            "wrong_route_rate": sum(float(x["wrong_route"]) for x in items) / n,
+        })
+    return rows, summary
+
+
 def write_csv(path, rows, fieldnames):
     with path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -227,13 +260,13 @@ def make_plots(summary):
         "tao": "#006D77",
         "entropy_threshold": "#B23A48",
         "qmdp": "#6D597A",
-        "mode_only_oracle": "#2A9D8F",
+        "voi_oracle": "#2A9D8F",
     }
     labels = {
         "tao": "TAO",
         "entropy_threshold": "Entropy belief",
         "qmdp": "QMDP",
-        "mode_only_oracle": "Mode oracle",
+        "voi_oracle": "VOI oracle",
     }
     for scenario in SCENARIOS:
         fig, ax = plt.subplots(figsize=(6.2, 3.8))
@@ -311,6 +344,24 @@ def write_report(summary, failures):
     (DOCS / "experiment_report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def write_support_misspecification_table(summary):
+    lines = [
+        "\\begin{tabular}{rrrr}",
+        "\\toprule",
+        "Support miss rate & Mean cost & Success & Wrong route \\\\",
+        "\\midrule",
+    ]
+    for r in summary:
+        lines.append(
+            f"{100 * float(r['support_miss_rate']):.0f}\\% & "
+            f"{float(r['mean_cost']):.3f} & "
+            f"{float(r['success_rate']):.3f} & "
+            f"{float(r['wrong_route_rate']):.3f} \\\\"
+        )
+    lines.extend(["\\bottomrule", "\\end{tabular}"])
+    (RESULTS / "support_misspecification_table.tex").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def main():
     rng = random.Random(11011)
     rows = []
@@ -334,6 +385,18 @@ def main():
         "mean_nuisance_senses", "mean_max_belief_states_carried", "mean_tao_edges",
     ]
     write_csv(RESULTS / "summary.csv", summary, summary_fields)
+    support_rows, support_summary = support_misspecification_stress(rng)
+    write_csv(
+        RESULTS / "support_misspecification_episode_results.csv",
+        support_rows,
+        ["support_miss_rate", "cost", "success", "wrong_route"],
+    )
+    write_csv(
+        RESULTS / "support_misspecification_summary.csv",
+        support_summary,
+        ["support_miss_rate", "episodes", "mean_cost", "success_rate", "wrong_route_rate"],
+    )
+    write_support_misspecification_table(support_summary)
     failures = make_plots(summary)
     write_report(summary, failures)
     metadata = {
@@ -341,6 +404,7 @@ def main():
         "scenarios": SCENARIOS,
         "nuisance_bits": NUISANCE_BITS,
         "policies": POLICIES,
+        "support_miss_rates": SUPPORT_MISS_RATES,
         "plot_failures": failures,
     }
     (RESULTS / "metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
