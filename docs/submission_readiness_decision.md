@@ -1,15 +1,20 @@
 # Submission Readiness Decision
 
 Paper: 11 - Embodied Uncertainty Without Belief Bloat
-Date: 2026-06-12
-Decision: workshop-only / revise
+Date: 2026-06-14
+Version: v3 full-scale hardening
+Decision: strong revise / final under current batch standard
 
 ## Rationale
 
-The paper has a clean formal object, two finite-state propositions, a runnable simulator, a stronger v2 VOI comparator, and a v2 support-calibration stress. The supported contribution is a controller-facing ambiguity interface that can ignore nuisance uncertainty when action ordering is already certified.
+The v3 paper is no longer the seven-page workshop draft. It now has a 26-page manuscript, two finite-state formal claims, five generated experiment families, stronger baselines, support-calibration stress, long-horizon receding-control evidence, continuous/noisy interval probes, and updated reproducibility artifacts.
 
-The paper is not ready for a strong main-conference robotics submission because the evidence is a small route-choice simulator and lacks hardware, standard benchmarks, learned support calibration, and long-horizon continuous-control validation. The v2 VOI oracle also shows the result is an interface claim, not an optimal-planning win.
+The supported contribution is a controller-facing Task-Ambiguity Operator that exposes unresolved action-order comparisons and can ignore high-volume nuisance uncertainty when it cannot change control. The evidence is strongest as a mechanism study: TAO matches exact myopic VOI in simple settings, avoids entropy-driven nuisance scans, and quantifies failure under support misspecification.
+
+The paper should still not be sold as hardware-ready main robotics evidence. It lacks hardware, standard robotics benchmarks, learned support calibration, and high-dimensional continuous-control validation. Exact value-of-information remains the right reference when a solved downstream belief/value model is available.
 
 ## Terminal Recommendation
 
-Submit only to a workshop or keep revising toward calibrated support estimation and robotics benchmarks.
+For the current 60-paper hardening standard: final. Copy only the verified 26-page PDF to `C:/Users/wangz/Downloads/11.pdf`, remove local `main.pdf`, commit, push, and move to Paper12 only after clean/upstream verification.
+
+For external positioning: submit as a strong mechanism/workshop or focused conference paper unless additional hardware or benchmark validation is added.

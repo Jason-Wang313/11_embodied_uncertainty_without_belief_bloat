@@ -1,9 +1,9 @@
 # Hostile Reviewer Response
 
-We agree that TAO should not be presented as a universal replacement for POMDP planning. In the v2 experiment, an exact myopic value-of-information oracle matches TAO in the toy route task. That is the intended boundary: TAO is a controller-facing ambiguity certificate, not a claim of superiority over solved value-of-information.
+The v3 paper should not be presented as a universal replacement for POMDP planning. Exact myopic value-of-information is included and matches TAO in the simple route and multi-action settings. That is the intended boundary: TAO is a controller-facing ambiguity certificate and sensing interface, not a claim of superiority over solved value-of-information.
 
-The useful result is that the TAO object can be empty under high nuisance uncertainty. At 32 nuisance bits, TAO commits with mean cost 1.0 when the task mode is known and senses the task mode once for mean cost 2.0 when it is hidden. The entropy-threshold belief baseline pays 7.4 and 8.4 respectively because it scans nuisance bits first.
+The useful result is that the TAO object can be empty or sparse under high nuisance uncertainty. At 64 nuisance bits, TAO has cost 2.000 in the decision-ambiguous route task and scans 0 nuisance bits, while entropy-threshold sensing costs 14.800 and scans 64 nuisance bits. In the 12-action task with 32 nuisance bits, TAO edge sensing costs 2.165 versus 6.005 for entropy-gain sensing. In the 12-gate receding task, TAO costs 24.000 versus 100.800 for entropy-threshold sensing.
 
-The central weakness is support calibration. V2 adds a stress where the true mode is excluded from support after sensing. Success falls to 0.884 at 10% support misses and 0.795 at 20%. This means any real robot version needs calibrated support estimators or fallback mechanisms.
+The central weakness is support calibration. V3 adds a direct stress: nominal TAO success is 0.898 at 10% support miss and 0.801 at 20%. Conservative confirmation recovers 0.981 and 0.961 success at those miss rates but pays extra sensing cost. Any real robot version needs calibrated support estimators, conservative support inflation, confirmation, or fallback planning.
 
-The paper should therefore be read as a formal mechanism and minimal counterexample. A stronger submission needs robotics benchmarks, learned support calibration, and long-horizon continuous-control validation.
+The paper should therefore be read as a formal mechanism plus full-scale synthetic evidence. It is much stronger than the v2 workshop draft, but still does not claim hardware validation, standard robotics benchmark superiority, learned support calibration, or high-dimensional continuous-control deployment.

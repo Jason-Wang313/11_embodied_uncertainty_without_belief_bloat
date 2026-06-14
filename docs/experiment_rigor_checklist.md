@@ -1,16 +1,23 @@
 # Experiment Rigor Checklist
 
-- [x] Runnable simulator: `scripts/run_experiments.py`.
-- [x] Deterministic random seed.
-- [x] TAO policy.
-- [x] Entropy-threshold belief failure-mode baseline.
-- [x] QMDP baseline.
-- [x] Exact myopic VOI oracle baseline added in v2.
-- [x] Product-state nuisance sweep up to 32 bits.
-- [x] Support-misspecification stress added in v2.
-- [x] CSV summaries and figure/table artifacts generated.
+- [x] Detailed full-scale execution plan written before v3 edits.
+- [x] Runnable full-scale suite: `experiments/full_scale_tao_uncertainty.py`.
+- [x] Stable wrapper command: `python scripts/run_experiments.py`.
+- [x] Deterministic master seed and 30 seed replicates per setting.
+- [x] Product-state nuisance sweep up to 64 bits.
+- [x] Multi-action task with 3, 5, 8, and 12 actions.
+- [x] Exact myopic VOI reference.
+- [x] Entropy-threshold and entropy-gain baselines.
+- [x] QMDP, mean-belief, minimax, robust hedge, random sensor, and uncertainty-count baselines where applicable.
+- [x] Support-misspecification and support-inflation stress.
+- [x] Conservative confirmation ablation.
+- [x] Long-horizon receding-gate experiment.
+- [x] Continuous/noisy bounded-loss interval probe.
+- [x] CSV seed summaries and aggregate summaries regenerated.
+- [x] Figures and LaTeX tables regenerated from summaries.
+- [x] Full manuscript expanded to 26 pages from real evidence, methods, limitations, and appendices.
+- [x] Negative findings and limitations included in the paper.
 - [ ] Hardware experiment.
 - [ ] Standard robotics benchmark.
-- [ ] Learned support calibration.
-- [ ] Continuous action spaces.
-- [ ] Long-horizon composition.
+- [ ] Learned support-estimator checkpoint.
+- [ ] High-dimensional continuous-control evaluation.

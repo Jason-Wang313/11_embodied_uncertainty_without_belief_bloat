@@ -2,14 +2,17 @@
 
 | Type | Claim | Exact statement | Status |
 |---|---|---|---|
-| Formal | Dominance certificate | If the upper task loss of action a over the observation-consistent set is below the lower task loss of every other action, then any belief supported on that set chooses a under expected loss. | Proved in the paper for finite action/state sets. |
-| Formal | Generic entropy can be arbitrarily irrelevant | A task can add any number of nuisance latent states without changing the optimal action or TAO ambiguity, while belief entropy increases. | Proved by product-state construction. |
-| Empirical | TAO changes control decisions | In the included partially observed robot simulator, TAO senses in decision-ambiguous states and commits in high-entropy nuisance states. | Supported by `results/episode_results.csv` after experiments run. |
-| Empirical | TAO improves cost under nuisance uncertainty | TAO should beat entropy-threshold sensing when nuisance entropy is large and decision ambiguity is sparse. | Supported only for the included small simulator, not a hardware claim. |
-| Empirical | TAO matches exact myopic VOI in the toy route task | The v2 VOI oracle senses the task mode only when it can change route choice and otherwise commits; it has the same mean costs as TAO in the included simulator. | Supported by `results/summary.csv`; this narrows the novelty claim. |
-| Stress | Support calibration is required | If the true task mode is excluded from support after sensing, TAO success falls as the miss rate rises. | Supported by `results/support_misspecification_summary.csv`: success 0.884 at 10% misses and 0.795 at 20%. |
-| Unsupported | Hardware generality | The method will transfer to real robots without new modeling work. | Not claimed; left as future work. |
-| Unsupported | Dominance over all POMDP solvers | TAO is universally better than belief planning. | Not claimed; TAO is a representational alternative for tasks with sparse decision ambiguity. |
+| Formal | Dominance certificate | If one action's upper task loss over the observation-consistent support is below every other action's lower task loss, then every belief supported on that set prefers that action under expected loss. | Proved in `main.tex` for finite action/state sets. |
+| Formal | Belief bloat can be irrelevant | Product-state nuisance variables can grow support size and entropy exponentially without changing any TAO interval or contested edge. | Proved in `main.tex`; tested in product-route scaling. |
+| Empirical | TAO ignores decision-inert nuisance uncertainty | In the product route task at 64 nuisance bits, TAO cost is 2.000 and scans 0 nuisance bits; entropy-threshold cost is 14.800 and scans 64 nuisance bits. | Supported by `results/full_scale/family_a_product_route_summary.csv`. |
+| Empirical | TAO extends beyond binary action choice | In the 12-action, 32-nuisance-bit inspection task, TAO edge sensing cost is 2.165 with success 1.000; entropy-gain cost is 6.005. | Supported by `results/full_scale/family_b_multi_action_summary.csv`. |
+| Empirical | TAO composes in a receding local controller | In the 12-gate, 32-nuisance-bit task, receding TAO cost is 24.000; entropy-threshold cost is 100.800. | Supported by `results/full_scale/family_d_long_horizon_summary.csv`. |
+| Empirical | Interval TAO can operate on bounded continuous losses | In the width 0.40, shift 0.03 continuous/noisy probe, TAO interval regret is 0.000 with oracle-action match 0.999. | Supported by `results/full_scale/family_e_continuous_summary.csv`; not a hardware or high-dimensional claim. |
+| Boundary | Exact VOI is a strong reference | Exact myopic VOI matches TAO in the simple route and multi-action tasks. | Supported; narrows the novelty to interface/certificate rather than superiority over solved VOI. |
+| Stress | Support calibration is required | At 10% support miss, nominal TAO success is 0.898; conservative confirmation recovers 0.981 success. | Supported by `results/full_scale/family_c_calibration_summary.csv`. |
+| Unsupported | Hardware generality | The method transfers directly to real robots without support calibration or physical loss bounds. | Not claimed. |
+| Unsupported | Universal POMDP dominance | TAO is generally better than belief planning or value-of-information planning. | Not claimed. |
 
 ## Claim Discipline
-The paper will claim a formal dominance certificate and a small runnable demonstration. It will not claim state-of-the-art robotics performance, broad hardware transfer, calibrated support estimation, or universal superiority over POMDP value-of-information methods.
+
+The paper claims a formal action-order ambiguity interface and full-scale synthetic mechanism evidence. It does not claim hardware validation, standard robotics benchmark superiority, learned support calibration, or universal replacement of POMDP solvers.

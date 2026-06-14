@@ -1,0 +1,12 @@
+{
+  "master_seed": 11011,
+  "seed_count": 30,
+  "families": [
+    "product_route",
+    "multi_action",
+    "support_calibration",
+    "long_horizon",
+    "continuous_loss"
+  ],
+  "plot_failures": []
+}

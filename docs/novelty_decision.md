@@ -22,3 +22,7 @@ Robots under partial observability should not maintain generic belief detail unl
 
 ## Why This Survives the Hostile Set
 The hostile set covers belief maintenance, approximate POMDP solvers, active information gathering, robust planning, and state abstraction. TAO is not a faster implementation of those mechanisms. It changes the scientific object from "what does the robot believe about the world?" to "which action comparisons remain undecidable for this task under the current observations?"
+
+## v3 Boundary Update
+
+The full-scale pass confirms the boundary rather than weakening it. Exact myopic value-of-information matches TAO in the simple route and multi-action settings, so the novelty should not be framed as beating solved VOI. The strongest claim is that TAO exposes a cheap action-order certificate and a sparse ambiguity graph that can prevent nuisance belief bloat before generic belief refinement. Support calibration remains the central dependency.
